@@ -2,6 +2,7 @@ The current build procedure is based on ant. You can build
 the code by
 	cd libvirt-java
 	ant build
+	ant maven
 	
 Type in ant -projecthelp to see all the tasks you can execute
 with the build script.
@@ -24,5 +25,5 @@ mailing list at:
  https://www.redhat.com/mailman/listinfo/libvir-list
 
 
-Bryan Kearney
+This file is modified in this repo, and based on the original work by Bryan Kearney
 bkearney@redhat.com

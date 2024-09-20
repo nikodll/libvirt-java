@@ -1,35 +1,94 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-        http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-    <modelVersion>4.0.0</modelVersion>
+	<modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.libvirt</groupId>
-    <artifactId>libvirt</artifactId>
-    <packaging>jar</packaging>
-    <version>@version@</version>
-    <name>libvirt java bindings</name>
-    <description>Java API for the libvirt C library</description>
-    <url>https://libvirt.org</url>
-    <licenses>
-        <license>
-            <name>MIT license</name>
-            <url>http://www.opensource.org/licenses/mit-license.php</url>
-        </license>
-    </licenses>
-    <scm>
-	<url>https://gitlab.com/libvirt/libvirt-java</url>
-    </scm>
+	<groupId>org.libvirt</groupId>
+	<artifactId>libvirt</artifactId>
+	<packaging>pom</packaging>
+	<version>@version@</version>
+	<name>libvirt java bindings</name>
+	<description>Java API for the libvirt C library</description>
+	<url>https://libvirt.org</url>
+	<licenses>
+		<license>
+			<name>MIT license</name>
+			<url>http://www.opensource.org/licenses/mit-license.php</url>
+		</license>
+	</licenses>
+	<scm>
+		<url>https://gitlab.com/libvirt/libvirt-java</url>
+	</scm>
 
-    <dependencies>
-        <dependency>
-          <groupId>net.java.dev.jna</groupId>
-          <artifactId>jna</artifactId>
-          <scope>provided</scope>
-          <version>[3.4.1,5.5.0]</version>
-        </dependency>
-    </dependencies>
+	<dependencies>
+		<dependency>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna</artifactId>
+			<scope>provided</scope>
+			<version>[3.4.1,5.5.0]</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-install-plugin</artifactId>
+				<version>3.1.3</version>
+				<executions>
+					
+					<!-- Install the main JAR file -->
+					<execution>
+						<id>install-main-jar</id>
+						<phase>install</phase>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<file>${project.basedir}/libvirt-@version@.jar</file>
+							<groupId>org.libvirt</groupId>
+							<artifactId>libvirt</artifactId>
+							<version>@version@</version>
+							<packaging>jar</packaging>
+						</configuration>
+					</execution>
+
+					<!-- Install the sources JAR file -->
+					<execution>
+						<id>install-sources-jar</id>
+						<phase>install</phase>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<file>${project.basedir}/libvirt-@version@-sources.jar</file>
+							<groupId>org.libvirt</groupId>
+							<artifactId>libvirt</artifactId>
+							<version>@version@</version>
+							<classifier>sources</classifier>
+							<packaging>jar</packaging>
+						</configuration>
+					</execution>
+
+					<!-- Install the Javadoc JAR file -->
+					<execution>
+						<id>install-javadoc-jar</id>
+						<phase>install</phase>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<file>${project.basedir}/libvirt-@version@-javadoc.jar</file>
+							<groupId>org.libvirt</groupId>
+							<artifactId>libvirt</artifactId>
+							<version>@version@</version>
+							<classifier>javadoc</classifier>
+							<packaging>jar</packaging>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>
-

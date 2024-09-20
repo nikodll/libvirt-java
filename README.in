@@ -1,4 +1,18 @@
-      This is the java binding to the libvirt library.
+      This is a fork of github.com/libvirt/libvirt-java
+	  
+	  It is a bit tricky to build a development version of the original library
+	  and deploy it to a local maven repository. This fork is created to make
+	  it simple.
+	  As long as you have libvirt ("libvirt0" in Ubuntu) and JNA ("libjna-platform-java")
+	  packages installed, the package can be built using just this console
+	  command (obviously it also needs both ant and maven build tools installed):
+
+	  ant build && ant maven
+
+All credits go to the authors of the original work
+-------------------------------------------------------------------------------
+	
+This is the java binding to the libvirt library.
 
 To use it, your program needs to access both the java library (.jar file),
 and the JNA library (.jar file)
