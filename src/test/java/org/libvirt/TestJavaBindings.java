@@ -1,5 +1,6 @@
 package org.libvirt;
 
+import org.libvirt.Domain.CheckpointListFlags;
 import org.libvirt.event.*;
 
 import java.nio.ByteBuffer;
@@ -8,6 +9,7 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -61,7 +63,7 @@ public final class TestJavaBindings extends TestCase {
         assertEquals("conn.getVersion()", 2, conn.getVersion());
         assertTrue("conn.isAlive", conn.isAlive());
         assertTrue("conn.isEncrypted", conn.isEncrypted() == 0);
-        assertTrue("conn.isSecure", conn.isSecure() == 1);        
+        assertTrue("conn.isSecure", conn.isSecure() == 1);
     }
 
     /*
@@ -110,8 +112,8 @@ public final class TestJavaBindings extends TestCase {
         assertEquals("Number of defined networks", 1, conn.numOfDefinedNetworks());
         assertEquals("Number of listed defined networks", 1, conn.listDefinedNetworks().length);
         assertTrue("Network1 should not be persistent", network1.isPersistent() == 0);
-        assertTrue("Network1 should not be active", network1.isActive() == 1);        
-        assertTrue("Network2 should be active", network2.isActive() == 0);            
+        assertTrue("Network1 should not be active", network1.isActive() == 1);
+        assertTrue("Network2 should be active", network2.isActive() == 0);
         this.validateNetworkData(network2);
         this.validateNetworkData(conn.networkLookupByName("deftest"));
         this.validateNetworkData(conn.networkLookupByUUID(UUIDArray));
@@ -157,8 +159,8 @@ public final class TestJavaBindings extends TestCase {
         assertEquals("Number of defined domains", 1, conn.numOfDefinedDomains());
         assertEquals("Number of listed defined domains", 1, conn.listDefinedDomains().length);
         assertTrue("Domain1 should be persistent", dom1.isPersistent() == 1);
-        assertTrue("Domain1 should not be active", dom1.isActive() == 0);        
-        assertTrue("Domain2 should be active", dom2.isActive() == 1);              
+        assertTrue("Domain1 should not be active", dom1.isActive() == 0);
+        assertTrue("Domain2 should be active", dom2.isActive() == 1);
         this.validateDomainData(dom2);
         this.validateDomainData(conn.domainLookupByName("createst"));
         this.validateDomainData(conn.domainLookupByUUID(UUIDArray));
@@ -187,15 +189,24 @@ public final class TestJavaBindings extends TestCase {
             System.out.println(c.getTypeAsString() + ":" + c.field + ":" + c.getValueAsString());
         }
 
-        dom.getSchedulerParameters() ;
-        
+        dom.getSchedulerParameters();
+
         SchedUintParameter[] pars = new SchedUintParameter[1];
         pars[0] = new SchedUintParameter();
         pars[0].field = "weight";
         pars[0].value = 100;
         dom.setSchedulerParameters(pars);
-        
-        dom.getSchedulerParameters() ;        
+
+        dom.getSchedulerParameters();
+
+        TypedParameter[] cpuStats = dom.getCPUStats(-1, 1);
+        assertEquals(3, cpuStats.length);
+        assertEquals("cpu_time", cpuStats[0].field);
+        assertEquals("48772617035", cpuStats[0].getValueAsString());
+        assertEquals("user_time", cpuStats[1].field);
+        assertEquals("5540000000", cpuStats[1].getValueAsString());
+        assertEquals("system_time", cpuStats[2].field);
+        assertEquals("6460000000", cpuStats[2].getValueAsString());
     }
 
     public void testInterfaces() throws Exception {
@@ -207,7 +218,7 @@ public final class TestJavaBindings extends TestCase {
         assertEquals("virtInterfaceGetName", "eth1", virtInt.getName());
         assertEquals("virtInterfaceGetMACString", "aa:bb:cc:dd:ee:ff", virtInt.getMACString());
         assertNotNull("virtInterfaceGetXMLDesc", virtInt.getXMLDescription(0));
-        assertTrue("virInterfaceIsActive", virtInt.isActive() == 1);         
+        assertTrue("virInterfaceIsActive", virtInt.isActive() == 1);
         System.out.println(virtInt.getXMLDescription(0));
 
         String newXML = "<interface type='ethernet' name='eth2'>" + "<start mode='onboot'/>"
@@ -234,7 +245,7 @@ public final class TestJavaBindings extends TestCase {
         }
         assertNotNull(virException);
     }
-    
+
     public void testStoragePool() throws Exception {
         StoragePool pool1 = conn.storagePoolDefineXML("<pool type='dir'>"
                 + "  <name>pool1</name>"
@@ -245,14 +256,14 @@ public final class TestJavaBindings extends TestCase {
                 + "</pool>", 0) ;
         StoragePool defaultPool = conn.storagePoolLookupByName("default-pool");
         assertEquals("numOfStoragePools:", 1, conn.numOfStoragePools());
-        assertEquals("numOfDefinedStoragePools:", 1, conn.numOfDefinedStoragePools());        
+        assertEquals("numOfDefinedStoragePools:", 1, conn.numOfDefinedStoragePools());
         assertNotNull("The pool should not be null", pool1);
-        assertNotNull("The default pool should not be null", defaultPool);   
+        assertNotNull("The default pool should not be null", defaultPool);
         assertEquals("The names should match", defaultPool.getName(), "default-pool");
-        assertEquals("The uids should match", pool1.getUUIDString(), "004c96e1-2d78-c30f-5aa5-f03c87d21e67"); 
+        assertEquals("The uids should match", pool1.getUUIDString(), "004c96e1-2d78-c30f-5aa5-f03c87d21e67");
         assertTrue("pool1 should be persistent", pool1.isPersistent() == 1);
-        assertTrue("pool1 should not be active", pool1.isActive() == 0);        
-        assertTrue("Domain2 should be active", defaultPool.isActive() == 1);         
+        assertTrue("pool1 should not be active", pool1.isActive() == 0);
+        assertTrue("Domain2 should be active", defaultPool.isActive() == 1);
     }
 
     public void testDomainEvents() throws Exception {
@@ -400,5 +411,235 @@ public final class TestJavaBindings extends TestCase {
             dom.destroy();
             dom.undefine();
         }
+    }
+
+    /**
+     * Helper function to create test domains
+     * @param domainName - Domain name
+     * @return Domain created
+     * @throws LibvirtException
+     */
+    private Domain createDomainToCheckpointTest(String domainName)  throws LibvirtException{
+        String domainXML = "<domain type='test'>\n" +
+            "  <name>" + domainName + "</name>\n" +
+            "  <memory unit='MiB'>512</memory>\n" +
+            "  <vcpu>1</vcpu>\n" +
+            "  <os>\n" +
+            "    <type arch='x86_64'>hvm</type>\n" +
+            "  </os>\n" +
+            "  <devices>\n" +
+            "    <disk type='file' device='disk'>\n" +
+            "      <driver name='qemu' type='qcow2'/>\n" +
+            "      <source file='/var/lib/libvirt/images/" + domainName +"-vda.qcow2'/>\n" +
+            "      <target dev='vda' bus='virtio'/>\n" +
+            "    </disk>\n" +
+            "    <disk type='file' device='cdrom'>\n" +
+            "      <driver name='qemu' type='raw'/>\n" +
+            "      <source file='/var/lib/libvirt/images/test-checkpoint-create.iso'/>\n" +
+            "      <target dev='hdc' bus='ide'/>\n" +
+            "      <readonly/>\n" +
+            "    </disk>\n" +
+            "    <console type='pty'/>\n" +
+            "  </devices>\n" +
+            "</domain>";
+
+        Domain domain = conn.domainDefineXML(domainXML);
+        return domain;
+    }
+
+    /**
+     * Check if throw an error when try to create a checkpoint in a inactive domain
+     * @throws LibvirtException
+     */
+    public void testDomainCheckpointCreateThrowError() throws LibvirtException {
+        Domain domain = createDomainToCheckpointTest("test-vm-checkpoint-create-throw-error");
+        String domainCheckpointXML = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
+            "<domaincheckpoint>\n" +
+            "    <name>test-checkpoint-create-1</name>\n" +
+            "    <disks>\n" +
+            "        <disk name=\"vda\" bitmap=\"test-checkpoint\" checkpoint=\"bitmap\"/>\n" +
+            "        <disk name=\"hdc\" checkpoint=\"no\"/>\n" +
+            "    </disks>\n" +
+            "</domaincheckpoint>\n";
+        LibvirtException virException = null;
+        try {
+            domain.checkpointCreateXML(domainCheckpointXML, 0);
+            fail("Exception should be raised because the checkpoint can not perform in a stopped domain");
+        } catch(LibvirtException e) {
+            virException = e;
+        }
+        assertNotNull(virException);
+    }
+
+    /**
+     * Check methods to create and destroy checkpoints of a domain
+     * @throws LibvirtException
+     */
+    public void testDomainCheckpointCreateAndDestroy() throws LibvirtException {
+        Domain domain = createDomainToCheckpointTest("test-vm-checkpoint-create");
+        domain.create();
+        assertEquals("The virtual machine should not have checkpoints", 0, domain.listAllCheckpoints(0).length);
+        String domainCheckpointXML = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
+            "<domaincheckpoint>\n" +
+            "    <name>test-checkpoint-create-1</name>\n" +
+            "    <disks>\n" +
+            "        <disk name=\"vda\" bitmap=\"test-checkpoint\" checkpoint=\"bitmap\"/>\n" +
+            "        <disk name=\"hdc\" checkpoint=\"no\"/>\n" +
+            "    </disks>\n" +
+            "</domaincheckpoint>\n";
+        DomainCheckpoint domainCheckpoint1 = domain.checkpointCreateXML(domainCheckpointXML, 0);
+
+        assertEquals("The checkpoint was not created", 1, domain.listAllCheckpoints(0).length);
+        domainCheckpointXML = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
+            "<domaincheckpoint>\n" +
+            "    <name>test-checkpoint-create-2</name>\n" +
+            "    <disks>\n" +
+            "        <disk name=\"vda\" bitmap=\"test-checkpoint\" checkpoint=\"bitmap\"/>\n" +
+            "        <disk name=\"hdc\" checkpoint=\"no\"/>\n" +
+            "    </disks>\n" +
+            "</domaincheckpoint>\n";
+        DomainCheckpoint domainCheckpoint2 = domain.checkpointCreateXML(domainCheckpointXML, 0);
+        assertEquals("The second checkpoint was not created", 2, domain.listAllCheckpoints(0).length);
+        domainCheckpoint2.delete(DomainCheckpoint.CheckpointDeleteFlags.CHILDREN);
+        assertEquals("The checkpoint 2 was not deleted", 1, domain.listAllCheckpoints(0).length);
+        domainCheckpoint1.delete(DomainCheckpoint.CheckpointDeleteFlags.CHILDREN);
+        assertEquals("The checkpoint 1 was not deleted", 0, domain.listAllCheckpoints(0).length);
+    }
+
+    /**
+     * Check methods inside DomainCheckpoint class, like getName, getXMLDesc,...
+     * @throws LibvirtException
+     */
+    public void testDomainCheckpointMethods() throws LibvirtException {
+        Domain domain = createDomainToCheckpointTest("test-vm-checkpoint-methods");
+        domain.create();
+        String domainCheckpointXML = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
+            "<domaincheckpoint>\n" +
+            "    <name>test-checkpoint-methods-1</name>\n" +
+            "    <disks>\n" +
+            "        <disk name=\"vda\" bitmap=\"test-checkpoint\" checkpoint=\"bitmap\"/>\n" +
+            "        <disk name=\"hdc\" checkpoint=\"no\"/>\n" +
+            "    </disks>\n" +
+            "</domaincheckpoint>\n";
+        DomainCheckpoint domainCheckpoint = domain.checkpointCreateXML(domainCheckpointXML, 0);
+        assertEquals("The names should match", "test-checkpoint-methods-1", domainCheckpoint.getName());
+
+
+        String domainCheckpointXMLDesc = domainCheckpoint.getXMLDesc(0);
+        assertTrue("The XML should contain the tag <domaincheckpoint>", domainCheckpointXMLDesc.contains("<domaincheckpoint>"));
+        assertTrue("The XML should contain the name of checkpoint", domainCheckpointXMLDesc.contains("test-checkpoint-methods-1"));
+        assertTrue("The XML should contain one of disks to perform the checkpoint", domainCheckpointXMLDesc.contains("vda"));
+    }
+
+    /**
+     * Check methods with hierarchy, like listAllChildren, getParent, etc.
+     * @throws LibvirtException
+     */
+    public void testDomainCheckpointHierarchy() throws LibvirtException {
+        int NUM_CHECKPOINTS = 10; // Should be bigger than 2
+        Domain domain = createDomainToCheckpointTest("test-vm-checkpoint-testDomainCheckpointHierarchy");
+        domain.create();
+        DomainCheckpoint[] testCheckpoints = new DomainCheckpoint[NUM_CHECKPOINTS];
+        String baseCheckpointName = "test-checkpoint-";
+        for(int i = 0; i < NUM_CHECKPOINTS; i++) {
+            String domainCheckpointXML = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
+            "<domaincheckpoint>  <name>" + baseCheckpointName + i + "</name>  </domaincheckpoint>\n"; // We avoid disks subelement to write less code
+            testCheckpoints[i] = domain.checkpointCreateXML(domainCheckpointXML, 0);
+        }
+
+        // Test the lookup function
+        DomainCheckpoint checkpointLookedup = domain.checkpointLookupByName("test-checkpoint-1");
+        // Check if the parent is "test-checkpoint-0"
+        assertEquals(testCheckpoints[0].getName(), checkpointLookedup.getParent(0).getName());
+
+
+        DomainCheckpoint checkpointNotCreated = domain.checkpointLookupByName("not-created-checkpoint");
+        assertNull(checkpointNotCreated);
+
+        // Get all checkpoints in topological order
+        DomainCheckpoint[] domainCheckpoints = domain.listAllCheckpoints(CheckpointListFlags.TOPOLOGICAL);
+        assertEquals("One checkpoint was not created", NUM_CHECKPOINTS, domainCheckpoints.length);
+        // The checkpoints order should be the same.
+        for (int i = 0; i < NUM_CHECKPOINTS; i++) {
+            assertEquals("The created checkpoints order should be the same - " + i, testCheckpoints[i].getName(), domainCheckpoints[i].getName());
+        }
+        assertNull(testCheckpoints[0].getParent(0));
+        for (int i = 1; i < NUM_CHECKPOINTS; i++) {
+            assertEquals(domainCheckpoints[i-1].getName(), domainCheckpoints[i].getParent(0).getName());
+        }
+
+        // Check checkpointListNames function
+        String[] checkpointNames = domain.checkpointListNames(CheckpointListFlags.TOPOLOGICAL);
+        assertEquals("One checkpoint was not created", NUM_CHECKPOINTS, checkpointNames.length);
+        // The checkpoints order should be the same.
+        for (int i = 0; i < NUM_CHECKPOINTS; i++) {
+            assertEquals("The created checkpoints order should be the same - " + i, testCheckpoints[i].getName(), checkpointNames[i]);
+        }
+
+        // Check listAllChildren function
+        DomainCheckpoint[] childrenFromFirst = domainCheckpoints[0].listAllChildren(CheckpointListFlags.DESCENDANTS);
+        assertEquals("One checkpoint was not created", NUM_CHECKPOINTS - 1, childrenFromFirst.length);
+        for(int i = 1; i < NUM_CHECKPOINTS; i++) {
+            assertEquals(childrenFromFirst[i-1].getName(), domainCheckpoints[i].getName());
+        }
+    }
+
+    public void testDomainBackupBegin() throws LibvirtException {
+        /**
+         * The driver test:///default is not compatible with virBackupBegin function.
+         * Discomment the test and put your own values and run.
+         */
+        // String connectionURI = "qemu+ssh://root@fgar-libvirt/system";
+        // String domainName = "deb12-1";
+        // String checkpointName = "test-backup-begin-checkpoint";
+
+        /**
+         * In this test:
+         *  - uses your local connection to search the domain.
+         *  - Init backup of given domain.
+         *  - Check if created correctly.
+         *  - Delete the created checkpoint previously.
+         */
+
+        // Connect connToThisTest = new Connect(connectionURI, false);
+
+
+        // Domain domain = connToThisTest.domainLookupByName(domainName);
+        // assertEquals("The test domain should not have any domain checkpoint", 0, domain.listAllCheckpoints(0).length);
+
+        // String backupXML = "<domainbackup mode=\"pull\">\n" + //
+        //     "    <server name=\"localhost\" port=\"10809\"/>\n" + //
+        //     "    <disks>\n" + //
+        //     "        <disk name=\"vda\" type=\"file\">\n" + //
+        //     "            <scratch file=\"/var/lib/libvirt/images/" + domainName +"-vda.scratch\"/>\n" + //
+        //     "        </disk>\n" + //
+        //     "        <disk name=\"vdb\" type=\"file\">\n" + //
+        //     "            <scratch file=\"/var/lib/libvirt/images/" + domainName +"-vdb.scratch\"/>\n" + //
+        //     "        </disk>\n" + //
+        //     "    </disks>\n" + //
+        //     "</domainbackup>";
+
+
+        // String checkpointXML = "<domaincheckpoint>\n" +
+        //     "    <name>" + checkpointName + "</name>\n" +
+        //     "    <disks>\n" +
+        //     "        <disk name=\"vda\" bitmap=\"" + checkpointName + "\" checkpoint=\"bitmap\"/>\n" +
+        //     "        <disk name=\"vdb\" bitmap=\"" + checkpointName + "\" checkpoint=\"bitmap\"/>\n" +
+        //     "    </disks>\n" +
+        //     "</domaincheckpoint>\n";
+        // domain.backupBegin(backupXML, checkpointXML, 0);
+        // DomainCheckpoint domainCheckpoint = domain.checkpointLookupByName(checkpointName);
+        // assertEquals(checkpointName, domainCheckpoint.getName());
+        // try {
+        //     Thread.sleep(2000);
+        // } catch (InterruptedException e) {
+        //     e.printStackTrace();
+        // }
+        // Map<String, TypedParameter> jobStats = domain.getJobStats(0);
+        // assertTrue("The jobStats should have the key 'operation'", jobStats.containsKey("operation"));
+        // assertEquals("The job type should be backup", Domain.JobOperation.BACKUP +"", jobStats.get("operation").getValueAsString());
+        // domain.abortJob();
+        // domainCheckpoint.delete(DomainCheckpoint.CheckpointDeleteFlags.CHILDREN);
+        // assertEquals("The checkpoint should be removed", 0, domain.listAllCheckpoints(0).length);
     }
 }

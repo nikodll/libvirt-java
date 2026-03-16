@@ -23,8 +23,6 @@ import java.util.List;
  * Known api calls to be missing
  * LIBVIRT_0.1.0
  * virDefaultErrorFunc
- * virConnCopyLastError
- * virFreeError
  *
  * LIBVIRT_0_5.0
  * virEventRegisterImpl
@@ -312,6 +310,7 @@ public interface Libvirt extends Library {
                       LongByReference typeVer);
     int virInitialize();
     int virCopyLastError(virError error);
+    int virResetError(virError error);
     virError virGetLastError();
     void virResetLastError();
     void virSetErrorFunc(Pointer userData, VirErrorCallback callback);
@@ -325,8 +324,10 @@ public interface Libvirt extends Library {
     int virDomainAttachDevice(DomainPointer virDomainPtr, String deviceXML);
     int virDomainAttachDeviceFlags(DomainPointer virDomainPtr,
                                    String deviceXML, int flags);
+    int virDomainBackupBegin(DomainPointer virDomainPtr, String backupXML, String checkpointXML, int flags);
+    CString virDomainBackupGetXMLDesc(DomainPointer virDomainPtr, int flags);
     int virDomainBlockCommit(DomainPointer virDomainPtr, String disk,
-                             String base, String top, long bandwidth, int flags);
+                             String base, String top, NativeLong bandwidth, int flags);
     int virDomainBlockCopy(DomainPointer virDomainPtr, String disk,
                            String deviceXML, virTypedParameter[] params,
                            int nparams, int flags);
@@ -359,9 +360,11 @@ public interface Libvirt extends Library {
     int virDomainGetID(DomainPointer virDomainPtr);
     int virDomainGetInfo(DomainPointer virDomainPtr, virDomainInfo vInfo);
     int virDomainGetJobInfo(DomainPointer virDomainPtr, virDomainJobInfo vInfo);
+    int virDomainGetJobStats(DomainPointer virDomainPtr, IntByReference type, PointerByReference params,
+                             IntByReference nparams, int flags);
     NativeLong virDomainGetMaxMemory(DomainPointer virDomainPtr);
     int virDomainGetMaxVcpus(DomainPointer virDomainPtr);
-    String virDomainGetMetadata(DomainPointer virDomainPtr, int type, String uri, int flags);
+    CString virDomainGetMetadata(DomainPointer virDomainPtr, int type, String uri, int flags);
     String virDomainGetName(DomainPointer virDomainPtr);
     CString virDomainGetOSType(DomainPointer virDomainPtr);
     int virDomainGetSchedulerParameters(DomainPointer virDomainPtr,
@@ -404,11 +407,23 @@ public interface Libvirt extends Library {
                                     ConnectionPointer virConnectPtr, String dxml,
                                     NativeLong flags, String dname, String uri,
                                     NativeLong bandwidth);
+    /**
+     * @deprecated use {@link virDomainMigrate3(DomainPointer,
+     * ConnectionPointer, virTypedParameter[], int, int)
+     * virDomainMigrate3(DomainPointer, ConnectionPointer,
+     * virTypedParameter[], int, int)} instead.
+     */
+    @Deprecated
     DomainPointer virDomainMigrate3(DomainPointer virDomainPtr,
                                     ConnectionPointer virConnectPtr,
                                     virTypedParameter[] params,
                                     int nparams,
                                     NativeLong flags);
+    DomainPointer virDomainMigrate3(DomainPointer virDomainPtr,
+                                    ConnectionPointer virConnectPtr,
+                                    virTypedParameter[] params,
+                                    int nparams,
+                                    int flags);
     int virDomainMigrateSetMaxDowntime(DomainPointer virDomainPtr,
                                        long downtime, int flags);
     int virDomainMigrateToURI(DomainPointer virDomainPtr, String duri,
@@ -417,8 +432,14 @@ public interface Libvirt extends Library {
                                String dconnuri, String miguri,
                                String dxml, NativeLong flags,
                                String dname, NativeLong bandwidth);
+    int virDomainMigrateToURI3(DomainPointer virDomainPtr,
+                               String dconnuri,
+                               virTypedParameter[] params, int nparams,
+                               int flags);
     int virDomainMemoryStats(DomainPointer virDomainPtr,
                              virDomainMemoryStats[] stats, int nrStats, int flags);
+    int virDomainGetCPUStats(DomainPointer virDomainPtr,
+                             virTypedParameter[] params, int nparams, int start_cpu, int ncpus, int flags);
     int virDomainPinVcpu(DomainPointer virDomainPtr,
                          int vcpu, byte[] cpumap, int maplen);
     int virDomainPMSuspendForDuration(DomainPointer virDomainPtr,
@@ -616,6 +637,31 @@ public interface Libvirt extends Library {
     int virStreamRecvAll(StreamPointer virStreamPtr,
                          Libvirt.VirStreamSinkFunc handler, Pointer opaque);
 
+    //DomainCheckpoint Methods
+    String virDomainCheckpointGetName(DomainCheckpointPointer virDomainCheckpointPtr);
+    DomainPointer virDomainCheckpointGetDomain(DomainCheckpointPointer virDomainCheckpointPtr);
+    ConnectionPointer virDomainCheckpointGetConnect(DomainCheckpointPointer checkpoint);
+    DomainCheckpointPointer virDomainCheckpointCreateXML(DomainPointer virDomainPtr,
+                                                         String xmlDesc, int flags);
+    CString virDomainCheckpointGetXMLDesc(DomainCheckpointPointer virDomainCheckpointPtr,
+                                          int flags);
+    int virDomainListAllCheckpoints(DomainPointer virDomainPtr,
+                                    PointerByReference virDomainCheckpointsPtr,
+                                    int flags);
+    int virDomainCheckpointListAllChildren(DomainCheckpointPointer virDomainCheckpointPtr,
+                                           PointerByReference virDomainCheckpointChildrenPtr,
+                                           int flags);
+    DomainCheckpointPointer virDomainCheckpointLookupByName(DomainPointer virDomainPtr,
+                                                            String name, int flags);
+    DomainCheckpointPointer virDomainCheckpointGetParent(DomainCheckpointPointer virDomainCheckpointPtr,
+                                                         int flags);
+    int virDomainCheckpointDelete(DomainCheckpointPointer virDomainCheckpointPtr,
+                                  int flags);
+
+    int virDomainCheckpointRef(DomainCheckpointPointer checkpoint);
+
+    int virDomainCheckpointFree(DomainCheckpointPointer virDomainCheckpointPtr);
+
     //DomainSnapshot Methods
     DomainSnapshotPointer virDomainSnapshotCreateXML(DomainPointer virDomainPtr,
                                                      String xmlDesc, int flags);
@@ -656,4 +702,6 @@ public interface Libvirt extends Library {
 
     int virDomainSetUserPassword(DomainPointer virDomainPtr,
                                  String user, String password, int flags);
+
+    void virTypedParamsFree(Pointer params, int nparams);
 }

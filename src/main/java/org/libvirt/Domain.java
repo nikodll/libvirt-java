@@ -16,6 +16,7 @@ import org.libvirt.event.PMWakeupListener;
 import org.libvirt.event.RebootListener;
 import org.libvirt.jna.CString;
 import org.libvirt.jna.CStringByReference;
+import org.libvirt.jna.DomainCheckpointPointer;
 import org.libvirt.jna.DomainPointer;
 import org.libvirt.jna.DomainSnapshotPointer;
 import org.libvirt.jna.Libvirt;
@@ -56,6 +57,132 @@ public class Domain {
     /**
      * TODO: get generated constants from libvirt
      */
+
+    public static final class JobOperation {
+        /**
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_DOMAIN_JOB_OPERATION_UNKNOWN">
+         *      Libvirt Documentation</a>
+         */
+        public static final int UNKNOWN           = 0;
+        /**
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_DOMAIN_JOB_OPERATION_START">
+         *      Libvirt Documentation</a>
+         */
+        public static final int START             = 1;
+
+        /**
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_DOMAIN_JOB_OPERATION_SAVE">
+         *      Libvirt Documentation</a>
+         */
+        public static final int SAVE              = 2;
+        /**
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_DOMAIN_JOB_OPERATION_RESTORE">
+         *      Libvirt Documentation</a>
+         */
+        public static final int RESTORE           = 3;
+
+        /**
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_DOMAIN_JOB_OPERATION_MIGRATION_IN">
+         *      Libvirt Documentation</a>
+         */
+        public static final int MIGRATION_IN      = 4;
+
+        /**
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_DOMAIN_JOB_OPERATION_MIGRATION_OUT">
+         *      Libvirt Documentation</a>
+         */
+        public static final int MIGRATION_OUT     = 5;
+        /**
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_DOMAIN_JOB_OPERATION_SNAPSHOT">
+         *      Libvirt Documentation</a>
+         */
+        public static final int SNAPSHOT          = 6;
+
+        /**
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_DOMAIN_JOB_OPERATION_SNAPSHOT_REVERT">
+         *      Libvirt Documentation</a>
+         */
+        public static final int SNAPSHOT_REVERT   = 7;
+
+        /**
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_DOMAIN_JOB_OPERATION_DUMP">
+         *      Libvirt Documentation</a>
+         */
+        public static final int DUMP              = 8;
+
+        /**
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_DOMAIN_JOB_OPERATION_BACKUP">
+         *      Libvirt Documentation</a>
+         */
+        public static final int BACKUP            = 9;
+
+        /**
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_DOMAIN_JOB_OPERATION_SNAPSHOT_DELETE">
+         *      Libvirt Documentation</a>
+         */
+        public static final int SNAPSHOT_DELETE   = 10;
+        /**
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_DOMAIN_JOB_OPERATION_LAST">
+         *      Libvirt Documentation</a>
+         */
+        public static final int LAST              = 11;
+    }
+
+    public static final class BlockJobType {
+        /**
+         * Placeholder
+         *
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_DOMAIN_BLOCK_JOB_TYPE_UNKNOWN">
+         *      Libvirt Documentation</a>
+         */
+        public static int UNKNOWN = 0;
+
+        /**
+         * Block Pull (virDomainBlockPull, or virDomainBlockRebase without flags), job ends on completion
+         *
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_DOMAIN_BLOCK_JOB_TYPE_PULL">
+         *      Libvirt Documentation</a>
+         */
+        public static int PULL = 1;
+
+        /**
+         * Block Copy (virDomainBlockCopy, or virDomainBlockRebase with flags), job exists as long as mirroring is active
+         *
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_DOMAIN_BLOCK_JOB_TYPE_COPY">
+         *      Libvirt Documentation</a>
+         */
+        public static int COPY = 2;
+
+        /**
+         * Block Commit (virDomainBlockCommit without flags), job ends on completion
+         *
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_DOMAIN_BLOCK_JOB_TYPE_COMMIT">
+         *      Libvirt Documentation</a>
+         */
+        public static int COMMIT = 3;
+
+        /**
+         * Active Block Commit (virDomainBlockCommit with flags), job exists as long as sync is active
+         *
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_DOMAIN_BLOCK_JOB_TYPE_ACTIVE_COMMIT">
+         *      Libvirt Documentation</a>
+         */
+        public static int ACTIVE_COMMIT = 4;
+
+        /**
+         * Backup (virDomainBackupBegin)
+         *
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_DOMAIN_BLOCK_JOB_TYPE_BACKUP">
+         *      Libvirt Documentation</a>
+         */
+        public static int BACKUP = 5;
+
+        /**
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_DOMAIN_BLOCK_JOB_TYPE_LAST">
+         *      Libvirt Documentation</a>
+         */
+        public static int LAST = 6;
+    }
 
     public static final class BlockCommitFlags {
         /** NULL base means next backing file, not whole chain */
@@ -123,7 +250,7 @@ public class Domain {
     /**
      * Contains multiple constants that defines "virDomainMigrate* params" multiple field.
      * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html">Libvirt domain documentation.</a>, and
-     *      <a href="https://gitlab.com/libvirt/libvirt/-/blob/master/include/libvirt/libvirt-domain.h">libvirt-domain.h</a>.
+     *      <a href="https://gitlab.com/libvirt/libvirt/-/blob/master/include/libvirt/libvirt-domain.h">libvirt-domain.h</a>
      */
     public static final class DomainMigrateParameters {
         /**
@@ -134,6 +261,18 @@ public class Domain {
          *     Libvirt Documentation</a>
          */
         public static final String VIR_MIGRATE_PARAM_MIGRATE_DISKS = "migrate_disks";
+
+        /**
+         * List the block devices for which zero detection (to avoid transferring zero blocks, for
+         * storage where it can't be probed) is to be enabled. This may increase CPU overhead of
+         * the migration. Destination image will be sparse only when the disk 'discard' option is
+         * set to 'unmap'. At the moment this is only supported by the QEMU driver but not for
+         * the tunnelled migration.
+         *
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_MIGRATE_PARAM_MIGRATE_DISKS_DETECT_ZEROES">
+         *     Libvirt Documentation</a>
+         */
+        public static final String VIR_MIGRATE_PARAM_MIGRATE_DISKS_DETECT_ZEROES = "migrate_disks_detect_zeroes";
 
         /**
          * The new configuration to be used for the domain on the destination host as
@@ -339,6 +478,31 @@ public class Domain {
         public static final int BYTES = 1;
     }
 
+    public static final class JobType {
+        /** No job is active **/
+        public static int NONE      = bit(0);
+
+        /** Job with a finite completion time **/
+        public static int BOUNDED   = bit(1);
+
+        /** Job without a finite completion time **/
+        public static int UNBOUNDED = bit(2);
+
+        /** Job has finished, but isn't cleaned up **/
+        public static int COMPLETED = bit(3);
+
+        /** Job hit error, but isn't cleaned up **/
+        public static int FAILED    = bit(4);
+
+        /** Job was aborted, but isn't cleaned up **/
+        public static int CANCELLED = bit(5);
+    }
+
+    public static final class GetJobStatsFlags {
+        public static int COMPLETED      = bit(0);
+        public static int KEEP_COMPLETED = bit(1);
+    }
+
     public static final class CreateFlags {
         /**  Default behavior */
         public static final int NONE         = 0;
@@ -452,6 +616,17 @@ public class Domain {
          * network connections */
         public static final int PARALLEL          = bit(17);
 
+        /** Force the guest writes which happen when copying disk images
+         * for non-shared storage migration to be synchronously written to
+         * the destination. */
+        public static final int NON_SHARED_SYNCHRONOUS_WRITES = bit(18);
+
+        /** Resume migration which failed in post-copy phase */
+        public static final int POSTCOPY_RESUME   = bit(19);
+
+        /** Use zero-copy mechanism for migrating memory pages */
+        public static final int ZEROCOPY          = bit(20);
+
     }
 
     public static final class XMLFlags {
@@ -494,6 +669,101 @@ public class Domain {
 
         /**  Use paravirt guest control */
         public static final int PARAVIRT        = bit(4);
+    }
+
+    public static final class DomainBackupBeginFlags {
+        /**
+         * reuse separately provided images
+         *
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_DOMAIN_BACKUP_BEGIN_REUSE_EXTERNAL">
+         * Libvirt Documentation</a>
+         */
+        public static final int REUSE_EXTERNAL    = bit(0);
+    }
+
+    public static final class DomainGetJobStatsFlags {
+        /**
+         * return stats of a recently completed job
+         *
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_DOMAIN_JOB_STATS_COMPLETED">
+         * Libvirt Documentation</a>
+         */
+        public static final int COMPLETED        = bit(0);
+
+        /**
+         * don't remove completed stats when reading them
+         *
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#VIR_DOMAIN_JOB_STATS_KEEP_COMPLETED">
+         * Libvirt Documentation</a>
+         */
+        public static final int KEEP_COMPLETED   = bit(1);
+    }
+
+    public static final class CheckpointCreateFlags {
+
+        /**	Restore or alter metadata (Since: 5.6.0)
+         *
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain-checkpoint.html#VIR_DOMAIN_CHECKPOINT_CREATE_REDEFINE">
+         *     Libvirt Documentation</a>
+        */
+        public static final int REDEFINE    = bit(0);
+
+        /**	use guest agent to quiesce all mounted file
+         * systems within the domain  (Since: 5.6.0)
+         *
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain-checkpoint.html#VIR_DOMAIN_CHECKPOINT_CREATE_QUIESCE">
+         *     Libvirt Documentation</a>
+        */
+        public static final int QUIESCE     = bit(1);
+
+        /**	validate disk data state when redefining
+         * a checkpoint (Since: 6.10.0)
+         *
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain-checkpoint.html#VIR_DOMAIN_CHECKPOINT_CREATE_REDEFINE_VALIDATE">
+         *     Libvirt Documentation</a>
+        */
+        public static final int REDEFINE_VALIDATE    = bit(2);
+    }
+
+    public static final class CheckpointListFlags {
+
+        /** List all descendants, not just children, when
+         * listing a checkpoint (Since: 5.6.0)
+         *
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain-checkpoint.html#VIR_DOMAIN_CHECKPOINT_LIST_DESCENDANTS">
+         *     Libvirt Documentation</a>
+        */
+        public static final int DESCENDANTS  = bit(0);
+
+        /**  Filter by checkpoints with no parents, when
+         * listing a domain (Since: 5.6.0)
+         *
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain-checkpoint.html#VIR_DOMAIN_CHECKPOINT_LIST_ROOTS">
+         *     Libvirt Documentation</a>
+        */
+        public static final int ROOTS        = bit(0);
+
+        /**  Ensure parents occur before children in
+         * the resulting list (Since: 5.6.0)
+         *
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain-checkpoint.html#VIR_DOMAIN_CHECKPOINT_LIST_TOPOLOGICAL">
+         *     Libvirt Documentation</a>
+        */
+        public static final int TOPOLOGICAL  = bit(1);
+
+        /** Filter by checkpoints with no children (Since: 5.6.0)
+         *
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain-checkpoint.html#VIR_DOMAIN_CHECKPOINT_LIST_LEAVES">
+         *     Libvirt Documentation</a>
+        */
+        public static final int LEAVES = bit(2);
+
+        /** Filter by checkpoints that have children (Since: 5.6.0)
+         *
+         * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain-checkpoint.html#VIR_DOMAIN_CHECKPOINT_LIST_NO_LEAVES">
+         *     Libvirt Documentation</a>
+        */
+        public static final int NO_LEAVES = bit(3);
     }
 
     public static final class SnapshotCreateFlags {
@@ -753,6 +1023,35 @@ public class Domain {
     }
 
     /**
+     * Start a point-in-time backup job for the specified disks of a running domain.
+     *
+     * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#virDomainBackupBegin">
+     *      Libvirt Documentation</a>
+     * @param backupXML contains details about the backup in the top-level element <domainbackup>
+     * @param checkpointXML description of a checkpoint to create or null
+     * @param flags the an OR'ed set of {@link DomainBackupBeginFlags}
+     * @throws LibvirtException
+     */
+    public void backupBegin(final String backupXML, final String checkpointXML, int flags)
+            throws LibvirtException {
+        processError(libvirt.virDomainBackupBegin(vdp, backupXML, checkpointXML, flags));
+    }
+
+    /**
+     * Queries the configuration of the active backup job.
+     * @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#virDomainBackupGetXMLDesc">
+            Libvirt Documentation</a>
+     * @param flags extra flags; not used yet, so callers should always pass 0
+     * @returnthe XML document
+     * @throws LibvirtException
+     */
+    public String getBackupXMLDesc(final int flags) throws LibvirtException {
+        CString result = libvirt.virDomainBackupGetXMLDesc(vdp, flags);
+        processError(result);
+        return result.toString();
+    }
+
+    /**
      * This function migrates domain's live block device (disk) to another
      * block device.
      *
@@ -824,6 +1123,7 @@ public class Domain {
     public void blockPeek(final String disk, final long offset,
                           final ByteBuffer buffer) throws LibvirtException {
         SizeT size = new SizeT();
+        long currentOffset = offset;
 
         // older libvirt has a limitation on the size of data
         // transferred per request in the remote driver. So, split
@@ -834,9 +1134,10 @@ public class Domain {
 
             size.setValue(req);
 
-            processError(libvirt.virDomainBlockPeek(this.vdp, disk, offset, size, buffer, 0));
+            processError(libvirt.virDomainBlockPeek(this.vdp, disk, currentOffset, size, buffer, 0));
 
             buffer.position(buffer.position() + req);
+            currentOffset += req;
         } while (buffer.hasRemaining());
 
         assert buffer.position() == buffer.limit();
@@ -895,7 +1196,7 @@ public class Domain {
      * @throws LibvirtException
      */
     public void blockCommit(String disk, String base, String top, long bandwidth, int flags) throws LibvirtException {
-        processError(libvirt.virDomainBlockCommit(vdp, disk, base, top, bandwidth, flags));
+        processError(libvirt.virDomainBlockCommit(vdp, disk, base, top, new NativeLong(bandwidth), flags));
     }
 
     /**
@@ -1092,7 +1393,7 @@ public class Domain {
      * @see <a
      *      href="https://libvirt.org/html/libvirt-libvirt.html#virDomainGetJobInfo">Libvirt
      *      Documentation</a>
-     * @return a DomainJobInfo object describing this domain
+     * @return a DomainJobInfo object
      * @throws LibvirtException
      */
     public DomainJobInfo getJobInfo() throws LibvirtException {
@@ -1102,9 +1403,32 @@ public class Domain {
     }
 
     /**
+     * Extract information about progress of a background job on a domain. Will
+     * return an error if the domain is not active.
+     *
+     * @see <a
+     *      href="https://libvirt.org/html/libvirt-libvirt.html#virDomainGetJobStats">Libvirt
+     *      Documentation</a>
+     * @param flags
+     *            flags
+     * @return a DomainJobStats object
+     * @throws LibvirtException
+     */
+    public DomainJobStats getJobStats(final int flags) throws LibvirtException {
+        IntByReference type = new IntByReference();
+        PointerByReference params = new PointerByReference();
+        IntByReference nParams = new IntByReference();
+
+        processError(libvirt.virDomainGetJobStats(vdp, type, params, nParams, flags));
+
+        TypedParameter[] stats = TypedParameter.fromPointer(params.getValue(), nParams.getValue());
+        return new DomainJobStats(type.getValue(), stats);
+    }
+
+    /**
      * Retrieve the maximum amount of physical memory allocated to a domain.
      *
-     * @return the memory in kilobytes
+     * @return the memory size in kibibytes (blocks of 1024 bytes)
      * @throws LibvirtException
      */
     public long getMaxMemory() throws LibvirtException {
@@ -1136,7 +1460,7 @@ public class Domain {
      * @throws LibvirtException
      */
     public String getMetadata(int type, String uri, int flags) throws LibvirtException {
-        return processError(libvirt.virDomainGetMetadata(vdp, type, uri, flags));
+        return processError(libvirt.virDomainGetMetadata(vdp, type, uri, flags)).toString();
     }
 
     /**
@@ -1486,6 +1810,7 @@ public class Domain {
                            final MemoryAddressMode mode)
             throws LibvirtException {
         SizeT size = new SizeT();
+        long currentStart = start;
 
         // older libvirt has a limitation on the size of data
         // transferred per request in the remote driver. So, split
@@ -1496,12 +1821,35 @@ public class Domain {
 
             size.setValue(req);
 
-            processError(libvirt.virDomainMemoryPeek(this.vdp, start, size, buffer, mode.getValue()));
+            processError(libvirt.virDomainMemoryPeek(this.vdp, currentStart, size, buffer, mode.getValue()));
 
             buffer.position(buffer.position() + req);
+            currentStart += req;
         } while (buffer.hasRemaining());
 
         assert buffer.position() == buffer.limit();
+    }
+
+    /**
+     * This function provides cpu statistics for the domain.
+     *
+     * @param start_cpu
+     *            which cpu to start with, or -1 for summary
+     * @param ncpus
+     *            how many cpus to query
+     * @return the collection of stats
+     * @throws LibvirtException
+     */
+    public TypedParameter[] getCPUStats(final int start_cpu, final int ncpus)
+            throws LibvirtException {
+        int number = processError(libvirt.virDomainGetCPUStats(vdp, null, 0, start_cpu, ncpus, 0));
+        virTypedParameter[] params = new virTypedParameter[number];
+        int result = processError(libvirt.virDomainGetCPUStats(vdp, params, number, start_cpu, ncpus, 0));
+        TypedParameter[] returnStats = new TypedParameter[result];
+        for (int x = 0; x < result; x++) {
+            returnStats[x] = TypedParameter.create(params[x]);
+        }
+        return returnStats;
     }
 
     /**
@@ -1671,6 +2019,11 @@ public class Domain {
      * after the returned domain object is no longer needed.
      * <br> <br>
      * For more informations, please @see <a href="https://libvirt.org/html/libvirt-libvirt-domain.html#virDomainMigrate3"> virDomainMigrate3</a>
+     *
+     * @deprecated
+     *            use {@link migrate(Connect, TypedParameter[], int)
+     *            migrate(Connect, TypedParameter[], int)}
+     *            instaed
      * @param dconn
      *            destination host (a Connect object)
      * @param params
@@ -1684,10 +2037,52 @@ public class Domain {
      *            connection (dconn).
      * @throws LibvirtException
      */
+    @Deprecated
     public Domain migrate(final Connect dconn, final TypedParameter[] params, long flags) throws LibvirtException {
         assert params != null : "migrate Typed parameters cannot be null";
         virTypedParameter[] virTypedParameters = generateNativeVirTypedParameters(params);
-        DomainPointer newPtr = processError(libvirt.virDomainMigrate3(vdp, dconn.vcp, virTypedParameters, params.length, new NativeLong(flags)));
+        DomainPointer newPtr = processError(libvirt.virDomainMigrate3(vdp, dconn.vcp, virTypedParameters, params.length, (int)flags));
+        return new Domain(dconn, newPtr);
+    }
+
+    /**
+     * Migrate the domain object from its current host to the destination host
+     * given by {@code dconn} (a connection to the destination host).
+     * <p>See {@link DomainMigrateParameters DomainMigrateParameters} for
+     * detailed description of individual {@code params}.
+     * <p>See {@link MigrateFlags MigrateFlags} documentation for description
+     * of individual {@code flags}.  {@link MigrateFlags#TUNNELED TUNNELED}
+     * and {@link MigrateFlags#PEER2PEER PEER2PEER} are not supported by this
+     * API, use {@link migrateToURI(String, TypedParameter[], int)
+     * migrateToURI(String, TypedParameter[], int)} instead.
+     * <p>There are many limitations on migration imposed by the underlying
+     * technology - for example it may not be possible to migrate between
+     * different processors even with the same architecture, or between different
+     * types of hypervisor.
+     * <p>{@link free} should be used to free the resources
+     * after the returned domain object is no longer needed.
+     *
+     * @see <a
+     * href="https://libvirt.org/html/libvirt-libvirt-domain.html#virDomainMigrate3">
+     * virDomainMigrate3</a>
+     *
+     * @param dconn
+     *            destination host (a Connect object)
+     * @param params
+     *            (optional) migration parameters
+     *
+     * @param flags
+     *            bitwise-OR of {@link MigrateFlags MigrateFlags}
+     * @return
+     *            the new domain object if the migration was successful. Note that
+     *            the new domain object exists in the scope of the destination
+     *            connection ({@code dconn}).
+     * @throws LibvirtException on failure
+     */
+    public Domain migrate(final Connect dconn, final TypedParameter[] params, int flags) throws LibvirtException {
+        assert params != null : "migrate Typed parameters cannot be null";
+        virTypedParameter[] virTypedParameters = generateNativeVirTypedParameters(params);
+        DomainPointer newPtr = processError(libvirt.virDomainMigrate3(vdp, dconn.vcp, virTypedParameters, params.length, flags));
         return new Domain(dconn, newPtr);
     }
 
@@ -1733,6 +2128,41 @@ public class Domain {
     public int migrateSetMaxDowntime(final long downtime)
             throws LibvirtException {
         return processError(libvirt.virDomainMigrateSetMaxDowntime(vdp, downtime, 0));
+    }
+
+    /**
+     * Migrate the domain object from its current host to the destination
+     * denoted by a given URI.
+     * <p>
+     * The destination is given either in dconnuri (if the
+     * {@link MigrateFlags#PEER2PEER PEER2PEER}
+     * is flag set), or in miguri (if neither the
+     * {@link MigrateFlags#PEER2PEER PEER2PEER} nor the
+     * {@link MigrateFlags#TUNNELED TUNNELED} migration
+     * flag is set in flags).
+     *
+     * @see <a
+     * href="https://libvirt.org/html/libvirt-libvirt.html#virDomainMigrateToURI">
+     * virDomainMigrateToURI</a>
+     *
+     * @param dconnuri
+     *            (optional) URI for target libvirtd if @flags includes PEER2PEER
+     * @param params
+     *            (optional) Migration parameters
+     * @param flags
+     *            Controls the migrate
+     * @return 0 if successful
+     * @throws LibvirtException
+     */
+    public int migrateToURI(final String dconnuri,
+                            final TypedParameter[] params,
+                            final int flags)
+            throws LibvirtException {
+        assert params != null : "migrate Typed parameters cannot be null";
+        virTypedParameter[] input = generateNativeVirTypedParameters(params);
+        return processError(libvirt.virDomainMigrateToURI3(vdp, dconnuri,
+                                                           input, input.length,
+                                                           flags));
     }
 
     /**
@@ -2064,7 +2494,7 @@ public class Domain {
      * domain. This function requires priviledged access to the hypervisor.
      *
      * @param memory
-     *            the amount memory in kilobytes
+     *            the memory size in kibibytes (blocks of 1024 bytes)
      * @throws LibvirtException
      */
     public void setMaxMemory(final long memory) throws LibvirtException {
@@ -2077,7 +2507,7 @@ public class Domain {
      * hypervisor.
      *
      * @param memory
-     *            in kilobytes
+     *            the memory size in kibibytes (blocks of 1024 bytes)
      * @throws LibvirtException
      */
     public void setMemory(final long memory) throws LibvirtException {
@@ -2194,6 +2624,141 @@ public class Domain {
      */
     public void shutdown() throws LibvirtException {
         processError(libvirt.virDomainShutdown(vdp));
+    }
+
+    /**
+     * Creates a new checkpoint of a domain based on the checkpoint xml contained in
+     * xmlDesc.
+     *
+     * @see <a
+     *      href="https://libvirt.org/html/libvirt-libvirt-domain-checkpoint.html#virDomainCheckpointCreateXML">Libvirt
+     *      Documentation</a>
+     * @param xmlDesc
+     *            string containing an XML description of the checkpoint
+     * @param flags
+     *            flags for creating the checkpoint, see the {@link CheckpointCreateFlags} for the flag options
+     * @return the checkpoint
+     * @throws LibvirtException
+     */
+    public DomainCheckpoint checkpointCreateXML(final String xmlDesc, final int flags)
+            throws LibvirtException {
+        DomainCheckpointPointer ptr = processError(libvirt.virDomainCheckpointCreateXML(vdp, xmlDesc, flags));
+        return new DomainCheckpoint(virConnect, ptr);
+    }
+
+    /**
+     * Creates a new checkpoint of a domain based on the checkpoint xml contained in
+     * xmlDesc.
+     * <p>
+     * This is just a convenience method, it has the same effect
+     * as calling {@code checkpointCreateXML(xmlDesc, 0);}.
+     *
+     * @see #checkpointCreateXML(String, int)
+     * @see <a
+     *      href="https://libvirt.org/html/libvirt-libvirt-domain-checkpoint.html#virDomainCheckpointCreateXML">Libvirt
+     *      Documentation</a>
+     * @param xmlDesc
+     *            string containing an XML description of the checkpoint
+     * @return the checkpoint, or null on Error
+     * @throws LibvirtException
+     */
+    public DomainCheckpoint checkpointCreateXML(final String xmlDesc)
+            throws LibvirtException {
+        return checkpointCreateXML(xmlDesc, 0);
+    }
+
+    /**
+     * Array of domain checkpoints for the given domain.
+     *
+     * @see <a
+     *      href="https://libvirt.org/html/libvirt-libvirt-domain-checkpoint.html#virDomainListAllCheckpoints">Libvirt
+     *      Documentation</a>
+     *
+     * @param flags
+     *            flags for list the checkpoint, see the {@link CheckpointListFlags} for the flag options
+     * @return Array with domain checkpoints of the given domain
+     * @throws LibvirtException
+     */
+    public DomainCheckpoint[] listAllCheckpoints(int flags) throws LibvirtException {
+        PointerByReference checkpoints = new PointerByReference();
+        int count = libvirt.virDomainListAllCheckpoints(vdp, checkpoints, flags);
+        if (checkpoints.getValue() == null) {
+            if (count != 0) {
+                processError(count);
+                throw new IllegalStateException("virDomainListAllCheckpoints returned " + count);
+            }
+            return new DomainCheckpoint[0];
+        }
+
+        try {
+            if (count < 0) {
+                processError(count);
+                throw new IllegalStateException("virDomainListAllCheckpoints returned " + count);
+            }
+            DomainCheckpoint[] result = new DomainCheckpoint[count];
+            Pointer arrayPtr = checkpoints.getValue();
+            for (int i = 0; i < count; i++) {
+                Pointer p = arrayPtr.getPointer((long) i * Native.POINTER_SIZE);
+                result[i] = new DomainCheckpoint(virConnect, new DomainCheckpointPointer(p));
+            }
+            return result;
+        } finally {
+            Library.free(checkpoints.getValue());
+        }
+    }
+
+    /**
+     * Retrieve a checkpoint based on its name
+     *
+     * @see <a
+     *      href="https://libvirt.org/html/libvirt-libvirt-domain-checkpoint.html#virDomainCheckpointLookupByName">Libvirt
+     *      Documentation</a>
+     * @param name
+     *            name for the domain checkpoint
+     * @return The domain checkpoint or null in case of not found
+     * @throws LibvirtException
+     */
+    public DomainCheckpoint checkpointLookupByName(final String name)
+            throws LibvirtException {
+        DomainCheckpointPointer ptr = libvirt.virDomainCheckpointLookupByName(vdp, name, 0);
+        if (ptr == null) {
+            return null;
+        }
+        return new DomainCheckpoint(virConnect, ptr);
+    }
+
+    /**
+     * Array of domain checkpoint names for the given domain. With the option to pass flags.
+     *
+     * This is a helper function, internally, call to listAllCheckpoints(flags), and it only get the names.
+     * @param flags {@link CheckpointListFlags}
+     * @return Array of names, or null if an error
+     * @throws LibvirtException
+     */
+    public String[] checkpointListNames(final int flags) throws LibvirtException {
+        DomainCheckpoint[] checkpoints = listAllCheckpoints(flags);
+        if(checkpoints.length > 0) {
+            String[] names = new String[checkpoints.length];
+            for(int i = 0; i < checkpoints.length; i++) {
+                names[i] = checkpoints[i].getName();
+            }
+            return names;
+        }
+        return Library.NO_STRINGS;
+    }
+
+    /**
+     * Array of domain checkpoint names for the given domain.
+     * <p>
+     * This is just a convenience method, it has the same effect
+     * as calling {@code checkpointListNames(0);}.
+     *
+     * @see #checkpointListNames(int)
+     * @return The list of names, or null if an error
+     * @throws LibvirtException
+     */
+    public String[] checkpointListNames() throws LibvirtException {
+        return checkpointListNames(0);
     }
 
     /**

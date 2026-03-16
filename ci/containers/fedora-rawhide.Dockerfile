@@ -24,7 +24,7 @@ exec "$@"\n' > /usr/bin/nosync && \
                ca-certificates \
                git \
                glibc-langpack-en \
-               java-11-openjdk-headless \
+               java-21-openjdk-headless \
                jna \
                junit \
                libvirt-devel \
@@ -33,4 +33,4 @@ exec "$@"\n' > /usr/bin/nosync && \
     nosync dnf clean all -y && \
     rpm -qa | sort > /packages.txt
 
-ENV LANG "en_US.UTF-8"
+ENV LANG="en_US.UTF-8"

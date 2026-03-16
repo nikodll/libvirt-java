@@ -4,9 +4,12 @@
 #
 # https://gitlab.com/libvirt/libvirt-ci
 
-function install_buildenv() {
-    dnf update -y --nogpgcheck fedora-gpg-keys
-    dnf distro-sync -y
+FROM quay.io/centos/centos:stream10
+
+RUN dnf distro-sync -y && \
+    dnf install 'dnf-command(config-manager)' -y && \
+    dnf config-manager --set-enabled -y crb && \
+    dnf install -y epel-release && \
     dnf install -y \
         ant \
         ant-junit \
@@ -17,8 +20,9 @@ function install_buildenv() {
         jna \
         junit \
         libvirt-devel \
-        rpm-build
+        rpm-build && \
+    dnf autoremove -y && \
+    dnf clean all -y && \
     rpm -qa | sort > /packages.txt
-}
 
-export LANG="en_US.UTF-8"
+ENV LANG="en_US.UTF-8"
